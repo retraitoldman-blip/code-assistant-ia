@@ -18,9 +18,11 @@ for msg in st.session_state.messages:
             st.markdown(msg["content"])
 
 if prompt := st.chat_input("Pose ta question..."):
-    if not groq_key or not groq_key.startswith("gsk_"):
-        st.error("⚠️ Clé Groq requise (commençant par gsk_)")
-        st.stop()
+    if "groq_api_key" in st.secrets:
+        groq_key = st.secrets["groq_api_key"]
+        st.success("✅ Clé API chargée automatiquement")
+     else:
+         groq_key = st.text_input("Clé API Groq", type="password", placeholder="gsk_...")
     
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -40,4 +42,5 @@ if prompt := st.chat_input("Pose ta question..."):
                 st.markdown(reply)
                 st.session_state.messages.append({"role": "assistant", "content": reply})
             except Exception as e:
+
                 st.error(f"❌ Erreur: {str(e)[:150]}")
