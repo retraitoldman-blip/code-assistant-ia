@@ -5,7 +5,7 @@ from groq import Groq
 
 st.set_page_config(page_title="🤖 Mon Assistant Code", page_icon="🤖", layout="wide")
 st.title("🤖 Mon Assistant Code IA")
-
+# update
 with st.sidebar:
     st.header("🔑 Configuration")
     
@@ -51,3 +51,4 @@ if prompt := st.chat_input("Pose ta question..."):
                 st.session_state.messages.append({"role": "assistant", "content": reply})
             except Exception as e:
                 st.error(f"❌ Erreur: {str(e)[:150]}")
+
