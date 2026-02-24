@@ -1,2 +1,2 @@
-streamlit
-groq
+streamlit>=1.28.0
+groq>=0.4.0
