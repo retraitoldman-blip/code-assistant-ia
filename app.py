@@ -42,9 +42,26 @@ with st.sidebar:
     # Sélecteur de modèle
     model_choice = st.selectbox(
         "🧠 Modèle IA",
-        ["llama-3.1-8b-instant", "llama-3.1-70b-versatile"],
-        help="8b: Rapide | 70b: Plus intelligent"
+        [
+            "llama-3.1-8b-instant",      # ⚡ Rapide
+            "llama-3.3-70b-versatile",   # 🧠 Intelligent (remplace le 3.1-70b)
+            "mixtral-8x7b-32768"         # 🔄 Alternative
+        ],
+        help="8b: Rapide | 70b: Plus intelligent | Mixtral: Alternative"
     )
+    if st.sidebar.button("🔄 Rafraîchir les modèles"):
+        try:
+            client_test = Groq(api_key=groq_key)
+            models = client_test.models.list()
+            model_ids = [m.id for m in models.data if 'instant' in m.id or 'versatile' in m.id]
+            st.session_state.available_models = model_ids
+            st.sidebar.success(f"✅ {len(model_ids)} modèles trouvés")
+        except:
+            st.session_state.available_models = ["llama-3.1-8b-instant", "llama-3.3-70b-versatile"]
+
+# Utiliser la liste dynamique ou la liste par défaut
+    model_list = st.session_state.get("available_models", ["llama-3.1-8b-instant", "llama-3.3-70b-versatile"])
+    model_choice = st.selectbox("🧠 Modèle IA", model_list)
     st.divider()
     if st.button("🔥 RÉINITIALISER COMPLÈT", use_container_width=True):
         st.session_state.clear()
