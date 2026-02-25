@@ -1,6 +1,4 @@
 
-import warnings
-warnings.filterwarnings("ignore")
 import streamlit as st
 from groq import Groq
 
@@ -78,6 +76,9 @@ if prompt := st.chat_input("Pose ta question de code..."):
     
     # 2. Générer la réponse de l'IA
     with st.chat_message("assistant"):
+        message_placeholder = st.empty()  # ✅ Placeholder pour mise à jour fluide
+        full_response = ""  # ✅ Variable pour accumuler le texte
+        
         try:
             client = Groq(api_key=groq_key, timeout=30)
             
@@ -89,11 +90,17 @@ if prompt := st.chat_input("Pose ta question de code..."):
                 stream=True  # ✅ Streaming activé
             )
             
-            # ✅ st.write_stream affiche proprement le flux
-            reply = st.write_stream(response)
+            # ✅ BOUCLE MANUELLE : Capture propre du texte chunk par chunk
+            for chunk in response:
+                if chunk.choices[0].delta.content is not None:
+                    full_response += chunk.choices[0].delta.content
+                    message_placeholder.markdown(full_response + "▌")  # Curseur animé
             
-            # Sauvegarder dans l'historique
-            st.session_state.messages.append({"role": "assistant", "content": reply})
+            # ✅ Affichage final sans curseur
+            message_placeholder.markdown(full_response)
+            
+            # ✅ Sauvegarder UNIQUEMENT le texte (pas d'objet JSON)
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
             
         except Exception as e:
             st.error(f"❌ Erreur: {str(e)[:200]}")
