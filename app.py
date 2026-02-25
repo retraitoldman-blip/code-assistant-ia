@@ -87,21 +87,19 @@ if prompt := st.chat_input("Pose ta question de code..."):
         with st.spinner("🤔 Réflexion en cours..."):
             try:
                 client = Groq(api_key=groq_key, timeout=30)
-                
-                # 🆕 STREAMING : stream=True active l'effet machine à écrire
+
+                # Streaming activé
                 response = client.chat.completions.create(
                     model=model_choice,
                     messages=st.session_state.messages,
                     temperature=0.7,
                     max_tokens=2048,
-                    stream=True  # ⚡ Activation du streaming
+                    stream=True
                 )
-                
-                # 🆕 AFFICHAGE FLUIDE : st.write_stream gère l'animation
+                # 🆕 Méthode robuste pour afficher le streaming
                 reply = st.write_stream(response)
                 
                 # Sauvegarder dans l'historique
                 st.session_state.messages.append({"role": "assistant", "content": reply})
-                
             except Exception as e:
                 st.error(f"❌ Erreur: {str(e)[:200]}")
