@@ -5,7 +5,7 @@ from groq import Groq
 
 st.set_page_config(page_title="🤖 Mon Assistant Code", page_icon="🤖", layout="wide")
 st.title("🤖 Mon Assistant Code IA")
-# update
+
 with st.sidebar:
     st.header("🔑 Configuration")
     
@@ -17,7 +17,11 @@ with st.sidebar:
         if groq_key and groq_key.startswith("gsk_"):
             st.success("✅ Clé valide")
     
-    st.markdown("[Obtenir une clé gratuite](https://console.groq.com/keys)")
+    st.markdown("[Obtenir une clé gratuite](https://console.groq.com/keys  )")
+
+# 🔐 FALLBACK AJOUTÉ ICI
+if 'groq_key' not in locals() and "groq_api_key" in st.secrets:
+    groq_key = st.secrets["groq_api_key"]
 
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": "Tu es un expert en code Python."}]
@@ -39,7 +43,8 @@ if prompt := st.chat_input("Pose ta question..."):
     with st.chat_message("assistant"):
         with st.spinner("Réflexion... ⚡"):
             try:
-                client = Groq(api_key=groq_key)
+                # ✅ MODIFICATION ICI : ajout du timeout
+                client = Groq(api_key=groq_key, timeout=30)
                 response = client.chat.completions.create(
                     model="llama-3.1-8b-instant",
                     messages=st.session_state.messages,
@@ -51,4 +56,3 @@ if prompt := st.chat_input("Pose ta question..."):
                 st.session_state.messages.append({"role": "assistant", "content": reply})
             except Exception as e:
                 st.error(f"❌ Erreur: {str(e)[:150]}")
-
