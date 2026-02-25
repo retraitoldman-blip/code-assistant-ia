@@ -1,63 +1,107 @@
 
-
 import streamlit as st
 from groq import Groq
 
-st.set_page_config(page_title="🤖 Mon Assistant Code", page_icon="🤖", layout="wide")
+# ─────────────────────────────────────────────────────────────
+# 1. CONFIGURATION DE LA PAGE
+# ─────────────────────────────────────────────────────────────
+st.set_page_config(
+    page_title="🤖 Mon Assistant Code",
+    page_icon="🤖",
+    layout="wide",
+    menu_items={
+        'Get Help': 'https://console.groq.com/docs',
+        'Report a bug': "https://github.com/votre-repo/issues",
+        'About': "# Mon Assistant Code IA\nCréé avec Streamlit & Groq"
+    }
+)
+
 st.title("🤖 Mon Assistant Code IA")
+st.caption("💡 Posez vos questions en Python, JavaScript, HTML, CSS, etc.")
 
+# ─────────────────────────────────────────────────────────────
+# 2. SIDEBAR & CONFIGURATION
+# ─────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.header("🔑 Configuration")
+    st.header("⚙️ Configuration")
     
-    try:
-        has_secret = "groq_api_key" in st.secrets
-    except:
-        has_secret = False
-
-    if has_secret:
+    # Gestion de la clé API
+    if "groq_api_key" in st.secrets:
         groq_key = st.secrets["groq_api_key"]
-        st.success("✅ Clé API chargée automatiquement")
+        st.success("✅ Clé API chargée")
     else:
-        groq_key = st.text_input("Clé API Groq", type="password", placeholder="gsk_...")
+        groq_key = st.text_input("🔑 Clé API Groq", type="password", placeholder="gsk_...")
         if groq_key and groq_key.startswith("gsk_"):
             st.success("✅ Clé valide")
     
-    st.markdown("[Obtenir une clé gratuite](https://console.groq.com/keys  )")
+    st.markdown("[Obtenir une clé gratuite](https://console.groq.com/keys)")
+    
+    st.divider()
+    
+    # 🆕 Bouton Nouveau Chat
+    if st.button("🗑️ Nouveau Chat", use_container_width=True):
+        st.session_state.messages = [{"role": "system", "content": "Tu es un expert en code Python."}]
+        st.rerun()
+    
+    # 🆕 Sélecteur de modèle
+    model_choice = st.selectbox(
+        "🧠 Modèle IA",
+        ["llama-3.1-8b-instant", "llama-3.1-70b-versatile"],
+        help="8b: Rapide | 70b: Plus intelligent"
+    )
+    
+    st.divider()
+    st.caption(f"👤 Connecté en tant que: Snoussi")
 
-# 🔐 FALLBACK AJOUTÉ ICI
-if 'groq_key' not in locals() and "groq_api_key" in st.secrets:
-    groq_key = st.secrets["groq_api_key"]
-
+# ─────────────────────────────────────────────────────────────
+# 3. GESTION DE L'HISTORIQUE (SESSION STATE)
+# ─────────────────────────────────────────────────────────────
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": "Tu es un expert en code Python."}]
 
+# ─────────────────────────────────────────────────────────────
+# 4. AFFICHAGE DES MESSAGES
+# ─────────────────────────────────────────────────────────────
 for msg in st.session_state.messages:
     if msg["role"] != "system":
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-if prompt := st.chat_input("Pose ta question..."):
+# ─────────────────────────────────────────────────────────────
+# 5. TRAITEMENT DE LA REQUÊTE UTILISATEUR
+# ─────────────────────────────────────────────────────────────
+if prompt := st.chat_input("Pose ta question de code..."):
+    
+    # Vérification de la clé API
     if not groq_key or not groq_key.startswith("gsk_"):
         st.error("⚠️ Clé Groq requise (commençant par gsk_)")
         st.stop()
     
+    # 1. Afficher le message utilisateur
     with st.chat_message("user"):
         st.markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
     
+    # 2. Générer la réponse de l'IA
     with st.chat_message("assistant"):
-        with st.spinner("Réflexion... ⚡"):
+        with st.spinner("🤔 Réflexion en cours..."):
             try:
-                # ✅ MODIFICATION ICI : ajout du timeout
                 client = Groq(api_key=groq_key, timeout=30)
+                
+                # 🆕 STREAMING : stream=True active l'effet machine à écrire
                 response = client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
+                    model=model_choice,
                     messages=st.session_state.messages,
                     temperature=0.7,
-                    max_tokens=1024
+                    max_tokens=2048,
+                    stream=True  # ⚡ Activation du streaming
                 )
-                reply = response.choices[0].message.content
-                st.markdown(reply)
+                
+                # 🆕 AFFICHAGE FLUIDE : st.write_stream gère l'animation
+                reply = st.write_stream(response)
+                
+                # Sauvegarder dans l'historique
                 st.session_state.messages.append({"role": "assistant", "content": reply})
+                
             except Exception as e:
-                st.error(f"❌ Erreur: {str(e)[:150]}")
+                st.error(f"❌ Erreur: {str(e)[:200]}")
