@@ -32,6 +32,7 @@ with st.sidebar:
     st.markdown("[Obtenir une clé gratuite](https://console.groq.com/keys)")
     
     st.divider()
+
     
     # Bouton Nouveau Chat
     if st.button("🗑️ Nouveau Chat", use_container_width=True):
@@ -44,6 +45,10 @@ with st.sidebar:
         ["llama-3.1-8b-instant", "llama-3.1-70b-versatile"],
         help="8b: Rapide | 70b: Plus intelligent"
     )
+    st.divider()
+    if st.button("🔥 RÉINITIALISER COMPLÈT", use_container_width=True):
+        st.session_state.clear()
+        st.rerun()
 
 # ─────────────────────────────────────────────────────────────
 # 3. GESTION DE L'HISTORIQUE
