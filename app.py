@@ -1,5 +1,4 @@
 
-
 import streamlit as st
 from groq import Groq
 
@@ -9,12 +8,7 @@ from groq import Groq
 st.set_page_config(
     page_title="🤖 Mon Assistant Code",
     page_icon="🤖",
-    layout="wide",
-    menu_items={
-        'Get Help': 'https://console.groq.com/docs',
-        'Report a bug': "https://github.com/votre-repo/issues",
-        'About': "# Mon Assistant Code IA\nCréé avec Streamlit & Groq"
-    }
+    layout="wide"
 )
 
 st.title("🤖 Mon Assistant Code IA")
@@ -39,23 +33,20 @@ with st.sidebar:
     
     st.divider()
     
-    # 🆕 Bouton Nouveau Chat
+    # Bouton Nouveau Chat
     if st.button("🗑️ Nouveau Chat", use_container_width=True):
         st.session_state.messages = [{"role": "system", "content": "Tu es un expert en code Python."}]
         st.rerun()
     
-    # 🆕 Sélecteur de modèle
+    # Sélecteur de modèle
     model_choice = st.selectbox(
         "🧠 Modèle IA",
         ["llama-3.1-8b-instant", "llama-3.1-70b-versatile"],
         help="8b: Rapide | 70b: Plus intelligent"
     )
-    
-    st.divider()
-    st.caption(f"👤 Connecté en tant que: Snoussi")
 
 # ─────────────────────────────────────────────────────────────
-# 3. GESTION DE L'HISTORIQUE (SESSION STATE)
+# 3. GESTION DE L'HISTORIQUE
 # ─────────────────────────────────────────────────────────────
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": "Tu es un expert en code Python."}]
@@ -85,22 +76,22 @@ if prompt := st.chat_input("Pose ta question de code..."):
     
     # 2. Générer la réponse de l'IA
     with st.chat_message("assistant"):
-        with st.spinner("🤔 Réflexion en cours..."):
-            try:
-                client = Groq(api_key=groq_key, timeout=30)
-
-                # Streaming activé
-                response = client.chat.completions.create(
-                    model=model_choice,
-                    messages=st.session_state.messages,
-                    temperature=0.7,
-                    max_tokens=2048,
-                    stream=True
-                )
-                # 🆕 Méthode robuste pour afficher le streaming
-                reply = st.write_stream(response)
-                
-                # Sauvegarder dans l'historique
-                st.session_state.messages.append({"role": "assistant", "content": reply})
-            except Exception as e:
-                st.error(f"❌ Erreur: {str(e)[:200]}")
+        try:
+            client = Groq(api_key=groq_key, timeout=30)
+            
+            response = client.chat.completions.create(
+                model=model_choice,
+                messages=st.session_state.messages,
+                temperature=0.7,
+                max_tokens=2048,
+                stream=True  # ✅ Streaming activé
+            )
+            
+            # ✅ st.write_stream affiche proprement le flux
+            reply = st.write_stream(response)
+            
+            # Sauvegarder dans l'historique
+            st.session_state.messages.append({"role": "assistant", "content": reply})
+            
+        except Exception as e:
+            st.error(f"❌ Erreur: {str(e)[:200]}")
