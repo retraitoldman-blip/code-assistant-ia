@@ -1,4 +1,5 @@
 
+
 import streamlit as st
 from groq import Groq
 
@@ -32,23 +33,62 @@ with st.sidebar:
     st.markdown("[Obtenir une clé gratuite](https://console.groq.com/keys)")
     
     st.divider()
-
     
-    # Bouton Nouveau Chat
-    if st.button("🗑️ Nouveau Chat", use_container_width=True):
-        st.session_state.messages = [{"role": "system", "content": "Tu es un expert en code Python."}]
-        st.rerun()
+    # 🧠 Sélecteur de modèle avec catégories
+    st.subheader("🧠 Choisir un modèle")
     
-    # Sélecteur de modèle
-    model_choice = st.selectbox(
-        "🧠 Modèle IA",
-        [
-            "llama-3.1-8b-instant",      # ⚡ Rapide
-            "llama-3.3-70b-versatile",   # 🧠 Intelligent (remplace le 3.1-70b)
-            "mixtral-8x7b-32768"         # 🔄 Alternative
-        ],
-        help="8b: Rapide | 70b: Plus intelligent | Mixtral: Alternative"
+    model_category = st.radio(
+        "Type de modèle",
+        ["⚡ Rapide & Économique", "🧠 Intelligent & Puissant", "🔬 Preview (Tests)", "🎙️ Audio/Vision"],
+        horizontal=True,
+        label_visibility="collapsed"
     )
+    
+    # Dictionnaire des modèles par catégorie
+    models_by_category = {
+        "⚡ Rapide & Économique": {
+            "llama-3.1-8b-instant": "🦙 Llama 3.1 8B (560 t/s) - Idéal pour chat rapide",
+        },
+        "🧠 Intelligent & Puissant": {
+            "llama-3.3-70b-versatile": "🦙 Llama 3.3 70B (280 t/s) - Raisonnement complexe",
+            "openai/gpt-oss-120b": "🤖 GPT-OSS 120B (500 t/s) - Modèle OpenAI puissant",
+            "openai/gpt-oss-20b": "🤖 GPT-OSS 20B (1000 t/s) - Équilibre vitesse/intelligence",
+        },
+        "🔬 Preview (Tests)": {
+            "meta-llama/llama-4-scout-17b-16e-instruct": "🆕 Llama 4 Scout 17B (750 t/s) - Nouvelle génération",
+            "moonshotai/kimi-k2-instruct-0905": "🌙 Kimi K2 (200 t/s) - Long contexte (256K)",
+            "qwen/qwen3-32b": "💬 Qwen3 32B (400 t/s) - Multilingue performant",
+        },
+        "🎙️ Audio/Vision": {
+            "whisper-large-v3": "🎤 Whisper Large v3 - Transcription audio",
+            "whisper-large-v3-turbo": "🎤⚡ Whisper Turbo - Transcription rapide",
+        }
+    }
+    
+    # Afficher les modèles selon la catégorie sélectionnée
+    selected_models = models_by_category[model_category]
+    model_choice = st.selectbox(
+        "Sélectionnez un modèle",
+        list(selected_models.keys()),
+        format_func=lambda x: selected_models[x],
+        help="Choisissez selon vos besoins : vitesse, intelligence ou fonctionnalités spéciales"
+    )
+    # 📊 Indicateur visuel de vitesse
+    speed_info = {
+        "llama-3.1-8b-instant": "⚡⚡⚡⚡⚡ Très rapide",
+        "llama-3.3-70b-versatile": "⚡⚡⚡ Rapide",
+        "openai/gpt-oss-120b": "⚡⚡⚡⚡ Rapide",
+        "openai/gpt-oss-20b": "⚡⚡⚡⚡⚡ Très rapide",
+        "meta-llama/llama-4-scout-17b-16e-instruct": "⚡⚡⚡⚡⚡ Très rapide",
+        "moonshotai/kimi-k2-instruct-0905": "⚡⚡ Moyen",
+        "qwen/qwen3-32b": "⚡⚡⚡⚡ Rapide",
+    }
+    
+    if model_choice in speed_info:
+        st.caption(f"🚀 Vitesse estimée : {speed_info[model_choice]}")
+    
+    # 📊 Afficher les infos du modèle sélectionné
+    st.info(f"💡 {selected_models[model_choice]}")
     if st.sidebar.button("🔄 Rafraîchir les modèles"):
         try:
             client_test = Groq(api_key=groq_key)
