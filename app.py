@@ -9,7 +9,12 @@ st.title("🤖 Mon Assistant Code IA")
 with st.sidebar:
     st.header("🔑 Configuration")
     
-    if "groq_api_key" in st.secrets:
+    try:
+        has_secret = "groq_api_key" in st.secrets
+    except:
+        has_secret = False
+
+    if has_secret:
         groq_key = st.secrets["groq_api_key"]
         st.success("✅ Clé API chargée automatiquement")
     else:
