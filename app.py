@@ -1,4 +1,6 @@
 
+import warnings
+warnings.filterwarnings("ignore")
 import streamlit as st
 from groq import Groq
 
